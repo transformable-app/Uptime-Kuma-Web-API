@@ -12,7 +12,7 @@ from uptimes.utils import get_uptimes
 router = APIRouter(redirect_slashes=True)
 
 
-@router.get("", description="Get all Monitors")
+@router.get("", description="Get all monitors")
 async def get_monitors(s: JWTSession = Depends(get_jwt_session)):
     try:
         return {"monitors": s.api.get_monitors()}
@@ -21,18 +21,16 @@ async def get_monitors(s: JWTSession = Depends(get_jwt_session)):
         raise HTTPException(500, str(e))
 
 
-@router.get("/{monitor_id}", description="Get Monitor By ID")
-async def get_monitor(monitor_id: int = Path(...), s: JWTSession = Depends(get_jwt_session)):
+@router.get("/{monitor_id}", description="Get monitor by ID")
+async def get_monitor(monitor_id: int = Path(...), s: JWTSession = Depends(get_jwt_session)) -> Monitor:
     try:
-        monitor = s.api.get_monitor(monitor_id)
+        return s.api.get_monitor(monitor_id)
     except UptimeKumaException as e:
         logging.info(e)
-        raise HTTPException(404, {"message": "Monitor not found!"})
+        raise_monitor_not_found()
     except Exception as e:
         logging.fatal(e)
         raise HTTPException(500, str(e))
-
-    return {"monitors": monitor}
 
 
 @router.get("/{monitor_id}/dashboard", description="Get monitors dashboard data")
@@ -45,18 +43,19 @@ async def get_monitor_dashboard(
         monitor = s.api.get_monitor(monitor_id)
     except UptimeKumaException as e:
         logging.info(e)
-        raise HTTPException(404, {"message": "Monitor not found!"})
+        raise_monitor_not_found()
     except Exception as e:
         logging.fatal(e)
         raise HTTPException(500, str(e))
 
     response = {
-        "monitors": monitor,
+        "monitor": monitor,
         "avgResponseTime": None,
         "uptimes": {
             "24": None,
             "720": None,
-        }
+        },
+        "cert": None,
     }
 
     try:
@@ -82,6 +81,14 @@ async def get_monitor_dashboard(
         logging.fatal(e)
         raise HTTPException(500, str(e))
 
+    try:
+        info = s.api.cert_info()
+        if monitor_id in info:
+            response["cert"] = info[monitor_id]
+    except Exception as e:
+        logging.fatal(e)
+        raise HTTPException(500, str(e))
+
     return response
 
 
@@ -100,7 +107,7 @@ async def get_monitor_cert_info(monitor_id: int = Path(...), s: JWTSession = Dep
         raise HTTPException(500, str(e))
 
 
-@router.post("", description="Create a Monitor")
+@router.post("", description="Create a monitor")
 async def create_monitor(monitor: Monitor, s: JWTSession = Depends(get_jwt_session)):
     try:
         return s.api.add_monitor(**monitor.dict())
@@ -112,14 +119,17 @@ async def create_monitor(monitor: Monitor, s: JWTSession = Depends(get_jwt_sessi
         raise HTTPException(500, str(e))
 
 
-@router.patch("/{monitor_id}", description="Update a specific Monitor")
+@router.patch("/{monitor_id}", description="Update a specific monitor")
 async def update_monitor(
         monitor: MonitorUpdate,
         monitor_id: int = Path(...),
         s: JWTSession = Depends(get_jwt_session)
 ):
     try:
-        resp = s.api.edit_monitor(id_=monitor_id, **monitor.dict(exclude_unset=True))
+        return {
+            **s.api.edit_monitor(id_=monitor_id, **monitor.dict(exclude_unset=True)),
+            "monitor": monitor.dict(exclude_unset=True)
+        }
     except UptimeKumaException as e:
         logging.info(e)
         raise_monitor_not_found()
@@ -130,10 +140,8 @@ async def update_monitor(
         logging.fatal(e)
         raise HTTPException(500, str(e))
 
-    return {**resp, "monitors": monitor.dict(exclude_unset=True)}
 
-
-@router.delete("/{monitor_id}", description="Delete a specific Monitor")
+@router.delete("/{monitor_id}", description="Delete a specific monitor")
 async def delete_monitor(monitor_id: int = Path(...), s: JWTSession = Depends(get_jwt_session)):
     try:
         # kinda dumb the api doesnt check if th id exists he just sends an event
@@ -146,7 +154,7 @@ async def delete_monitor(monitor_id: int = Path(...), s: JWTSession = Depends(ge
         raise HTTPException(500, str(e))
 
 
-@router.post("/{monitor_id}/pause", description="Pause a specific Monitor")
+@router.post("/{monitor_id}/pause", description="Pause a specific monitor")
 async def pause_monitor(monitor_id: int = Path(...), s: JWTSession = Depends(get_jwt_session)):
     try:
         return s.api.pause_monitor(monitor_id)
@@ -158,7 +166,7 @@ async def pause_monitor(monitor_id: int = Path(...), s: JWTSession = Depends(get
         raise HTTPException(500, str(e))
 
 
-@router.post("/{monitor_id}/resume", description="Resume a specific Monitor")
+@router.post("/{monitor_id}/resume", description="Resume a specific monitor")
 async def resume_monitor(monitor_id: int = Path(...), s: JWTSession = Depends(get_jwt_session)):
     try:
         return s.api.resume_monitor(monitor_id)
@@ -170,7 +178,7 @@ async def resume_monitor(monitor_id: int = Path(...), s: JWTSession = Depends(ge
         raise HTTPException(500, str(e))
 
 
-@router.get("/{monitor_id}/beats", description="Get Monitor Beats in the last N hours ( by default its 1 hour) ")
+@router.get("/{monitor_id}/beats", description="Get monitor beats in the last N hours ( by default its 1 hour) ")
 async def monitor_beats(
         monitor_id: int = Path(...),
         hours: int = 1,
