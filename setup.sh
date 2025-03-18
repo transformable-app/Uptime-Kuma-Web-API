@@ -1,23 +1,14 @@
 touch .env
 
 ACCESS_TOKEN_EXPIRATION=5
-
-echo "Enter Uptime Kuma Server URL (e.g. http://127.0.0.1:3001):"
-read KUMA_SERVER
-if [ -z "$KUMA_SERVER" ]; then
-  KUMA_SERVER="http://127.0.0.1:3001"
-fi
-
-echo "Enter Uptime Kuma Username:"
-read KUMA_USERNAME
-
-echo "Enter Uptime Kuma Password:"
-read KUMA_PASSWORD
-
-echo "Enter Admin Password:"
-read ADMIN_PASSWORD
-
 SECRET_KEY=$(openssl rand -hex 32)
+
+DEFAULT_KUMA_SERVER="http://127.0.0.1:3001"
+read -p "Enter Uptime Kuma Server URL (e.g. $DEFAULT_KUMA_SERVER): " KUMA_SERVER
+KUMA_SERVER="${KUMA_SERVER:-$DEFAULT_KUMA_SERVER}"
+read -p "Enter Uptime Kuma Username: " KUMA_USERNAME
+read -s -p "Enter Uptime Kuma Password: " KUMA_PASSWORD
+read -s -p "Enter Admin Password: " ADMIN_PASSWORD
 
 # Write to .env
 echo "KUMA_SERVER=$KUMA_SERVER" >> .env
