@@ -27,6 +27,17 @@ echo "ACCESS_TOKEN_EXPIRATION=$ACCESS_TOKEN_EXPIRATION" >> .env
 # Install dependencies
 python3.9 -m venv .venv
 source .venv/bin/activate
+
+# If pip not exists and pip3.9 exists, alias it
+if ! command -v pip &> /dev/null; then
+  if command -v pip3.9 &> /dev/null; then
+    alias pip=pip3.9
+  else
+    echo "pip not found. Please install pip."
+    exit 1
+  fi
+fi
+
 pip install -r requirements.txt
 
 # Do you want to setup a systemd service?
