@@ -1,6 +1,6 @@
 from typing import Any, List, Optional
 
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, Field
 from uptime_kuma_api import IncidentStyle
 
 
@@ -18,7 +18,8 @@ class Monitor(BaseModel):
     id: int
     maintenance: Optional[bool]
     name: str
-    sendUrl: int
+    sendUrl: bool
+    type: Optional[str] = None
 
 
 class PublicGroup(BaseModel):
@@ -42,7 +43,11 @@ class StatusPage(BaseModel):
     footerText: Optional[str] = None
     showPoweredBy: bool
     googleAnalyticsId: Optional[str] = None
-    showCertificateExpiry: bool
+    showCertificateExpiry: Optional[bool] = None
+    incident: Optional[Incident] = None
+    publicGroupList: Optional[List[PublicGroup]] = None
+    maintenanceList: Optional[List[Any]] = None
+    autoRefreshInterval: Optional[int] = None
 
 
 class AddStatusPageRequest(BaseModel):
@@ -58,14 +63,15 @@ class AddStatusPageResponse(BaseModel):
 class SaveStatusPageRequest(BaseModel):
     title: Optional[str]
     description: Optional[str] = None
-    theme: Optional[str] = "light"
+    theme: Optional[str] = "auto"
     published: Optional[bool] = True
     showTags: Optional[bool] = False
-    domainNameList: Optional[List[HttpUrl]] = []
+    domainNameList: Optional[List[str]] = Field(default_factory=list)
     googleAnalyticsId: Optional[str] = None
     customCSS: Optional[str] = ""
     footerText: Optional[str] = None
     showPoweredBy: Optional[bool] = True
+    showCertificateExpiry: Optional[bool] = False
     icon: Optional[str] = "/icon.svg"
     publicGroupList: Optional[List] = None
 

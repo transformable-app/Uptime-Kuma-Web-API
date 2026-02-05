@@ -12,7 +12,8 @@ class ImportHandleType(str, Enum):
 class NotificationListItem(BaseModel):
     id: int
     name: str
-    config: str
+    type: Optional[str] = None
+    config: Any
     active: bool
     userId: int
     isDefault: bool

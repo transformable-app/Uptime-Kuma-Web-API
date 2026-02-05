@@ -2,7 +2,7 @@ from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Path
 from uptime_kuma_api import UptimeKumaException
-from .schemas import Maintenance, MaintenanceUpdate, MonitorMaintenance
+from .schemas import Maintenance, MaintenanceUpdate, MonitorMaintenance, StatusPageMaintenance
 from auth.schemas import JWTSession
 from auth.dependencies import get_jwt_session
 from config import logger as logging
@@ -130,6 +130,38 @@ async def add_monitor_maintenance(
     except UptimeKumaException as e:
         logging.info(e)
         raise HTTPException(404, {"message": "Maintenance or monitors not found!"})
+    except Exception as e:
+        logging.fatal(e)
+        raise HTTPException(500, str(e))
+
+
+@router.get("/{maintenance_id}/status-pages", description="Get status pages to a maintenances")
+async def get_status_page_maintenance(
+        maintenance_id: int = Path(...),
+        s: JWTSession = Depends(get_jwt_session)
+) -> List[dict]:
+    try:
+        return s.api.get_status_page_maintenance(maintenance_id)
+    except UptimeKumaException as e:
+        logging.info(e)
+        raise_maintenance_not_found()
+    except Exception as e:
+        logging.fatal(e)
+        raise HTTPException(500, str(e))
+
+
+@router.post("/{maintenance_id}/status-pages", description="Adds status pages to a maintenances")
+async def add_status_page_maintenance(
+        status_pages: List[StatusPageMaintenance],
+        maintenance_id: int = Path(...),
+        s: JWTSession = Depends(get_jwt_session)
+):
+    try:
+        sps = [s.dict() for s in status_pages]
+        return s.api.add_status_page_maintenance(maintenance_id, sps)
+    except UptimeKumaException as e:
+        logging.info(e)
+        raise HTTPException(404, {"message": "Maintenance or status pages not found!"})
     except Exception as e:
         logging.fatal(e)
         raise HTTPException(500, str(e))

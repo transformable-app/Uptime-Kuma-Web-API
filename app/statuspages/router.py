@@ -64,6 +64,7 @@ async def save_status_page(
         customCSS=status_page_data.customCSS,
         footerText=status_page_data.footerText,
         showPoweredBy=status_page_data.showPoweredBy,
+        showCertificateExpiry=status_page_data.showCertificateExpiry,
         icon=status_page_data.icon,
         publicGroupList=status_page_data.publicGroupList
     )

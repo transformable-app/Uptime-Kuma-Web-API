@@ -2,7 +2,7 @@ from typing import Optional
 import datetime
 
 from uptime_kuma_api import MaintenanceStrategy
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Maintenance(BaseModel):
@@ -29,11 +29,18 @@ class Maintenance(BaseModel):
     strategy: MaintenanceStrategy
     active: Optional[bool] = True
     description: Optional[str] = ""
-    dateRange: Optional[list] = [datetime.date.today().strftime("%Y-%m-%d 00:00:00")]
+    dateRange: Optional[list] = Field(
+        default_factory=lambda: [datetime.date.today().strftime("%Y-%m-%d 00:00:00")]
+    )
     intervalDay: Optional[int] = 1
-    weekdays: Optional[list] = []
-    daysOfMonth: Optional[list] = []
-    timeRange: Optional[list] = [{"hours": 2, "minutes": 0}, {"hours": 3, "minutes": 0}]
+    weekdays: Optional[list] = Field(default_factory=list)
+    daysOfMonth: Optional[list] = Field(default_factory=list)
+    timeRange: Optional[list] = Field(
+        default_factory=lambda: [{"hours": 2, "minutes": 0}, {"hours": 3, "minutes": 0}]
+    )
+    cron: Optional[str] = "30 3 * * *"
+    durationMinutes: Optional[int] = 60
+    timezoneOption: Optional[str] = None
 
     class Config:
         use_enum_values = True
@@ -47,3 +54,8 @@ class MaintenanceUpdate(Maintenance):
 class MonitorMaintenance(BaseModel):
     id: int
     name: str
+
+
+class StatusPageMaintenance(BaseModel):
+    id: int
+    title: str
