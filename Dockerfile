@@ -14,8 +14,8 @@ ENV PYTHONUNBUFFERED 1
 
 
 # Create a virtual environment and activate it
-RUN python -m venv venv
-ENV PATH="/app/venv/bin:$PATH"
+RUN python -m venv .venv
+ENV PATH="/app/.venv/bin:$PATH"
 
 # Upgrade pip and install the requirements
 COPY --chown=appuser:appgroup ./requirements.txt ./
@@ -50,7 +50,7 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 # Set the PATH to include the virtual environment
-ENV PATH="/app/venv/bin:$PATH"
+ENV PATH="/app/.venv/bin:$PATH"
 
 ## Cleanup without impacting the codebase
 RUN chmod +x /app/entrypoint.sh 
@@ -61,5 +61,4 @@ USER appuser
 ENTRYPOINT ["/app/entrypoint.sh"]
 
 # ENTRYPOINT [ "tail", "-f", "/dev/null" ]
-
 
