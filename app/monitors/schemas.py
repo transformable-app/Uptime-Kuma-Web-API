@@ -1,5 +1,5 @@
 from typing import List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from uptime_kuma_api import MonitorType, AuthMethod
 
@@ -9,6 +9,7 @@ class Monitor(BaseModel):
     name: str
     parent: Optional[int] = None
     description: Optional[str] = None
+    conditions: List = Field(default_factory=list)
     interval: int = 60
     retryInterval: int = 60
     resendInterval: int = 0
@@ -43,6 +44,15 @@ class Monitor(BaseModel):
     oauth_client_secret: Optional[str] = None
     oauth_scopes: Optional[str] = None
 
+    # GRPC
+    grpcUrl: Optional[str] = None
+    grpcEnableTls: bool = False
+    grpcServiceName: Optional[str] = None
+    grpcMethod: Optional[str] = None
+    grpcProtobuf: Optional[str] = None
+    grpcBody: Optional[str] = None
+    grpcMetadata: Optional[str] = None
+
     timeout: int = 48
     keyword: Optional[str] = None
     invertKeyword: bool = False
@@ -59,6 +69,8 @@ class Monitor(BaseModel):
     mqttPassword: Optional[str] = None
     mqttTopic: Optional[str] = None
     mqttSuccessMessage: Optional[str] = None
+    mqttCheckType: str = "keyword"
+    mqttWebsocketPath: Optional[str] = None
 
     # SQLSERVER POSTGRES
     databaseConnectionString: Optional[str] = None
@@ -80,6 +92,7 @@ class Monitor(BaseModel):
     gamedigGivenPortOnly: bool = False
 
     jsonPath: Optional[str] = None
+    jsonPathOperator: Optional[str] = None
     expectedValue: Optional[str] = None
 
     # KAFKA
@@ -90,6 +103,18 @@ class Monitor(BaseModel):
     kafkaProducerAllowAutoTopicCreation: bool = False
     kafkaProducerSaslOptions: Optional[dict] = None
 
+    # 2.0+
+    cacheBust: bool = False
+    remote_browser: Optional[dict] = None
+    snmpVersion: str = "2c"
+    rabbitmqNodes: Optional[List] = None
+    ipFamily: Optional[str] = None
+    ping_numeric: bool = True
+    ping_count: int = 3
+    ping_per_request_timeout: int = 2
+    rabbitmqUsername: Optional[str] = None
+    rabbitmqPassword: Optional[str] = None
+
     class Config:
         use_enum_values = True
 
@@ -97,6 +122,7 @@ class Monitor(BaseModel):
 class MonitorUpdate(Monitor):
     type: Optional[MonitorType] = None
     name: Optional[str] = None
+    conditions: Optional[List] = None
 
 
 class MonitorTag(BaseModel):

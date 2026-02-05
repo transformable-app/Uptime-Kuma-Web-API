@@ -19,6 +19,7 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 # Upgrade pip and install the requirements
 COPY --chown=appuser:appgroup ./requirements.txt ./
+COPY --chown=appuser:appgroup ./uptime-kuma-api-v2 ./uptime-kuma-api-v2
 
 
 RUN pip install --upgrade pip && \
@@ -61,4 +62,3 @@ USER appuser
 ENTRYPOINT ["/app/entrypoint.sh"]
 
 # ENTRYPOINT [ "tail", "-f", "/dev/null" ]
-
